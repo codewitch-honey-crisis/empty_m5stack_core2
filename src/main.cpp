@@ -145,7 +145,7 @@ void loop() {
         uint16_t x,y;
         touch.xy(&x,&y);
         if(y<240) {
-            draw::filled_ellipse(lcd,srect16(x,y,x,y).inflate(3,3),color_t::purple);
+            draw::filled_ellipse(lcd,srect16(spoint16(x,y),6),color_t::purple);
         } else {
             Serial.printf("Bottom: x=%03d, y=%03d\n",(int)x,(int)y);
         }
