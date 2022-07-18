@@ -1,8 +1,11 @@
+//#define SET_CLOCK
 #include <Arduino.h>
 #include <SPIFFS.h>
 #include <SD.h>
-#include <mpu6886.hpp>
 #include <m5core2_power.hpp>
+#include <mpu6886.hpp>
+#include <bm8563.hpp>
+#include <ft6336.hpp>
 #include <tft_io.hpp>
 #include <ili9341.hpp>
 #include <gfx.hpp>
@@ -18,6 +21,7 @@ constexpr static const int8_t lcd_pin_bl = -1;
 constexpr static const int8_t lcd_pin_dc = 15;
 constexpr static const int8_t lcd_pin_rst = -1;
 constexpr static const int8_t lcd_pin_cs = 5;
+constexpr static const int8_t lcd_pin_touch_int = 39;
 constexpr static const int8_t sd_pin_cs = 4;
 constexpr static const int8_t led_pin = 15;
 constexpr static const int8_t spi_pin_mosi = 23;
@@ -27,10 +31,10 @@ constexpr static const int8_t spi_pin_miso = 38;
 using bus_t = tft_spi_ex<spi_host, 
                         lcd_pin_cs, 
                         spi_pin_mosi, 
-                        spi_pin_miso, 
+                        -1, 
                         spi_pin_clk, 
                         SPI_MODE0,
-                        false, 
+                        true, 
                         320 * 240 * 2 + 8, 2>;
 
 using lcd_t = ili9342c<lcd_pin_dc, 
@@ -49,6 +53,10 @@ lcd_t lcd;
 
 m5core2_power power;
 
+bm8563 rtc(i2c_container<1>::instance());
+
+ft6336<280,320,lcd_pin_touch_int> touch(i2c_container<1>::instance());
+
 // declare the MPU6886 that's attached
 // to the first I2C host
 mpu6886 gyro(i2c_container<1>::instance());
@@ -61,8 +69,10 @@ void initialize_m5stack_core2() {
     i2c_container<0>::instance().begin(32, 33);
     i2c_container<1>::instance().begin(21, 22);
     power.initialize();
-    lcd.initialize();
+    rtc.initialize();
+    spi_container<spi_host>::instance().begin(spi_pin_clk,spi_pin_miso,spi_pin_mosi,-1);
     SD.begin(4,spi_container<spi_host>::instance());
+    lcd.initialize();
     SPIFFS.begin(false);
     lcd.fill(lcd.bounds(),color_t::purple);
     rect16 rect(0,0,64,64);
@@ -70,7 +80,15 @@ void initialize_m5stack_core2() {
     lcd.fill(rect,color_t::white);
     lcd.fill(rect.inflate(-8,-8),color_t::purple);
     gyro.initialize();
+    touch.rotation(1);
     
+#ifdef SET_CLOCK
+    tm build_tm;
+    rtc.build(&build_tm);
+    rtc.set(build_tm);
+    Serial.print("Clock set to ");
+    Serial.println(asctime(&build_tm));
+#endif
 }
 
 void setup() {
@@ -113,8 +131,23 @@ void setup() {
                                             .center((srect16)lcd.bounds())
                                                 .offset(0,text_height/2);
     draw::text(lcd,text_rect,text_draw_info,color_t::blue);
+    tm t;
+    
     Serial.println("Booted");
+    tm current_tm;
+    rtc.now(&current_tm);
+    Serial.print("Time is reported as ");
+    Serial.println(asctime(&current_tm));
 }
 void loop() {
-
+    touch.update();
+    if(touch.pressed()) {
+        uint16_t x,y;
+        touch.xy(&x,&y);
+        if(y<240) {
+            draw::filled_ellipse(lcd,srect16(x,y,x,y).inflate(3,3),color_t::purple);
+        } else {
+            Serial.printf("Bottom: x=%03d, y=%03d\n",(int)x,(int)y);
+        }
+    }
 }
