@@ -81,6 +81,7 @@ void initialize_m5stack_core2() {
     lcd.fill(rect.inflate(-8,-8),color_t::purple);
     gyro.initialize();
     touch.rotation(1);
+    touch.interrupt_enabled(false);
     
 #ifdef SET_CLOCK
     tm build_tm;
