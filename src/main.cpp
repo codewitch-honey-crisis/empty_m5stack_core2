@@ -57,11 +57,13 @@ bm8563 rtc(i2c_container<1>::instance());
 
 ft6336<280,320,lcd_pin_touch_int> touch(i2c_container<1>::instance());
 
-// declare the MPU6886 that's attached
-// to the first I2C host
+// declare the MPU6886
 mpu6886 gyro(i2c_container<1>::instance());
-// the following is equiv at least on the ESP32
-// mpu6886 gyro(Wire);
+
+// declare an alias for the I2C port
+// in the Grove form factor on the 
+// side of the device
+TwoWire& grove = i2c_container<0>::instance();
 
 // initialize M5 Stack Core2 peripherals/features
 void initialize_m5stack_core2() {
@@ -144,11 +146,12 @@ void loop() {
     touch.update();
     if(touch.pressed()) {
         uint16_t x,y;
-        touch.xy(&x,&y);
-        if(y<240) {
-            draw::filled_ellipse(lcd,srect16(spoint16(x,y),6),color_t::purple);
-        } else {
-            Serial.printf("Bottom: x=%03d, y=%03d\n",(int)x,(int)y);
+        if(touch.xy(&x,&y)) {
+            if(y<240) {
+                draw::filled_ellipse(lcd,srect16(spoint16(x,y),6),color_t::purple);
+            } else {
+                Serial.printf("Bottom: x=%03d, y=%03d\n",(int)x,(int)y);
+            }
         }
     }
 }
