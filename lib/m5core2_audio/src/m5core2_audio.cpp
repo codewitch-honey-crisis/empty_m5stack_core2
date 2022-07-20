@@ -11,7 +11,6 @@
 #define DMA_BUF_LEN     (32)
 #define DMA_NUM_BUF     (2)
 #define I2S_NUM         (0)
-#define WAVE_FREQ_HZ    (440.0f)
 #define TWOPI           (6.28318531f)
 static bool m5core2_audio_initialized = false;
 static TaskHandle_t m5core2_audio_task;
