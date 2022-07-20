@@ -163,6 +163,11 @@ void setup() {
     
     sound.stop();
     
+    sound.start_recording([](const uint16_t* data, size_t size, void* state) {
+        Serial.println(size);
+    },nullptr);
+    delay(2000);
+    sound.stop_recording();
 }
 void loop() {
     touch.update();

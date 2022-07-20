@@ -97,7 +97,7 @@ bool m5core2_audio_i2s_initialize(int mode) {
                 .mck_io_num = 0, // Unused
                 .bck_io_num = 12,
                 .ws_io_num = 0,
-                .data_out_num = 0,
+                .data_out_num = I2S_PIN_NO_CHANGE,
                 .data_in_num = 34};
             i2s_set_pin((i2s_port_t)I2S_NUM, &pins);
             break;
