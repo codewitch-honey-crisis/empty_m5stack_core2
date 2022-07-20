@@ -1,8 +1,11 @@
+// define the following to set the clock to the time
+// of the build
 //#define SET_CLOCK
 #include <Arduino.h>
 #include <SPIFFS.h>
 #include <SD.h>
 #include <m5core2_power.hpp>
+#include <m5core2_audio.hpp>
 #include <mpu6886.hpp>
 #include <bm8563.hpp>
 #include <ft6336.hpp>
@@ -49,15 +52,22 @@ using lcd_t = ili9342c<lcd_pin_dc,
 // lcd colors
 using color_t = color<typename lcd_t::pixel_type>;
 
+// the LCD
 lcd_t lcd;
 
+// the power module
 m5core2_power power;
 
+// the audio module
+m5core2_audio sound;
+
+// the real time clock
 bm8563 rtc(i2c_container<1>::instance());
 
+// the touch panel
 ft6336<280,320,lcd_pin_touch_int> touch(i2c_container<1>::instance());
 
-// declare the MPU6886
+// the gyro
 mpu6886 gyro(i2c_container<1>::instance());
 
 // declare an alias for the I2C port
@@ -84,7 +94,10 @@ void initialize_m5stack_core2() {
     gyro.initialize();
     touch.rotation(1);
     touch.interrupt_enabled(false);
-    
+    if(!sound.initialize()) {
+        Serial.println("Sound initialization failed");
+        while(true);
+    }
 #ifdef SET_CLOCK
     tm build_tm;
     rtc.build(&build_tm);
@@ -137,10 +150,15 @@ void setup() {
     tm t;
     
     Serial.println("Booted");
+
     tm current_tm;
     rtc.now(&current_tm);
     Serial.print("Time is reported as ");
     Serial.println(asctime(&current_tm));
+
+    sound.sinw(2000,.25);
+    delay(125);
+    sound.stop();
 }
 void loop() {
     touch.update();
@@ -154,4 +172,5 @@ void loop() {
             }
         }
     }
+    taskYIELD();
 }
