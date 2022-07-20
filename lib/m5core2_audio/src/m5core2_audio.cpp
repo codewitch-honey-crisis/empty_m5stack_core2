@@ -225,7 +225,7 @@ bool m5core2_audio::initialize() {
         }
         
         // Highest possible priority for realtime audio task
-        xTaskCreate(m5core2_audio_task_fn, "m5core2_audio", 1024*4, nullptr, configMAX_PRIORITIES - 1,&m5core2_audio_task);
+        xTaskCreate(m5core2_audio_task_fn, "m5core2_audio", 1024, nullptr, configMAX_PRIORITIES - 1,&m5core2_audio_task);
         
         m5core2_audio_msg.cmd = 0;
         m5core2_audio_init_mode = 0;
