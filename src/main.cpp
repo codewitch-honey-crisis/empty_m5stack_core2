@@ -157,9 +157,9 @@ void setup() {
     Serial.println(asctime(&current_tm));
 
     sound.sinw(2000,.05);
-    delay(250);
+    delay(50);
     sound.sinw(1000,.05);
-    delay(250);
+    delay(50);
     
     sound.stop();
 }
