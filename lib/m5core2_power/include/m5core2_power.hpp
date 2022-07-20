@@ -59,7 +59,7 @@ class m5core2_power {
 
   m5core2_power();
   void initialize();
-  void lcd_breathe(uint8_t brightness);
+  void lcd_dim(float brightness);
   bool battery_state();
 
   void coulomb_counter_enable(bool value);

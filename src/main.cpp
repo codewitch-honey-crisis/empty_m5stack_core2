@@ -155,13 +155,14 @@ void setup() {
     rtc.now(&current_tm);
     Serial.print("Time is reported as ");
     Serial.println(asctime(&current_tm));
-
+    
     sound.sinw(2000,.05);
     delay(50);
     sound.sinw(1000,.05);
     delay(50);
     
     sound.stop();
+    
 }
 void loop() {
     touch.update();

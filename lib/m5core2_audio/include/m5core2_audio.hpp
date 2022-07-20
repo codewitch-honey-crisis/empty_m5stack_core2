@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+typedef void (*m5core2_audio_record_callback)(const uint16_t *data, size_t size, void* state);
 class m5core2_audio {
 public:
     inline bool initialized() const;
@@ -16,6 +17,8 @@ public:
     // stops all sound from playing
     bool stop();
 
+    bool start_recording(m5core2_audio_record_callback callback,void* state);
+    bool stop_recording();
     // generate a square based tone at the specified hz, and a volume multiplier between 0 and 1
     //bool sqrw(float frequency,float volume);
     

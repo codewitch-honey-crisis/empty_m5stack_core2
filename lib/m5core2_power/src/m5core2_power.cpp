@@ -141,7 +141,8 @@ void m5core2_power::ReadBuff(uint8_t Addr, uint8_t Size, uint8_t *Buff) {
   }
 }
 
-void m5core2_power::lcd_breathe(uint8_t brightness) {
+void m5core2_power::lcd_dim(float value) {
+  uint8_t brightness=value*12;
   if (brightness > 12) {
     brightness = 12;
   }
