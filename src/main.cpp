@@ -156,18 +156,21 @@ void setup() {
     Serial.print("Time is reported as ");
     Serial.println(asctime(&current_tm));
     
+    // each of the following (play/record) works by itself but they 
+    // crash if you try to use both
     sound.sinw(2000,.05);
     delay(50);
     sound.sinw(1000,.05);
     delay(50);
     
     sound.stop();
-    
+    /*
     sound.start_recording([](const uint16_t* data, size_t size, void* state) {
         Serial.println(size);
     },nullptr);
     delay(2000);
     sound.stop_recording();
+    */
 }
 void loop() {
     touch.update();
