@@ -10,7 +10,7 @@
 #define SAMPLE_RATE     (44100)
 #define SAMPLE_RATE_INPUT     (44100)
 #define DMA_BUF_LEN     (32)
-#define DMA_BUF_LEN_INPUT     (32)
+#define DMA_BUF_LEN_INPUT     (512)
 #define DMA_NUM_BUF     (2)
 #define I2S_NUM         (0)
 #define TWOPI           (6.28318531f)
