@@ -156,7 +156,7 @@ void setup() {
     Serial.print("Time is reported as ");
     Serial.println(asctime(&current_tm));
 
-    sound.sinw(2000,.25);
+    sound.sinw(2000,.025);
     delay(125);
     sound.stop();
 }

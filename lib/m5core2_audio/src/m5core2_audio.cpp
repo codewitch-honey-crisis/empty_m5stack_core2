@@ -16,7 +16,7 @@
 static bool m5core2_audio_initialized = false;
 static TaskHandle_t m5core2_audio_task;
 static QueueHandle_t m5core2_audio_queue;
-static uint16_t m5core2_audio_out_buf[DMA_BUF_LEN * 2];
+static uint16_t m5core2_audio_out_buf[DMA_BUF_LEN];
 struct m5core2_audio_queue_message {
     int cmd;
     uint32_t data[2];
@@ -67,8 +67,7 @@ void m5core2_audio_sin(m5core2_audio_queue_message& msg) {
             // Scale to 16-bit integer range
             samp = f* 65535.0f * s.volume;
 
-            // Shift to MSB of 32-bit int for internal DAC
-            m5core2_audio_out_buf[i*2] = m5core2_audio_out_buf[i*2+1] = (uint16_t)samp ;//<< 16;
+            m5core2_audio_out_buf[i] = (uint16_t)samp ;//<< 16;
         }
         // Write with max delay. We want to push buffers as fast as we
         // can into DMA memory. If DMA memory isn't transmitted yet this
@@ -122,7 +121,7 @@ bool m5core2_audio::initialize() {
         memset(&i2s_config,0,sizeof(i2s_config_t));
         i2s_config.mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
         i2s_config.sample_rate = SAMPLE_RATE;
-        i2s_config.bits_per_sample = I2S_BITS_PER_SAMPLE_8BIT;
+        i2s_config.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT;
         i2s_config.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT;
         i2s_config.communication_format = I2S_COMM_FORMAT_STAND_MSB;
         i2s_config.dma_buf_count = DMA_NUM_BUF;
