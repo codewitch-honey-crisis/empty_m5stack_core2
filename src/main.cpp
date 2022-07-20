@@ -161,8 +161,7 @@ void setup() {
     sound.sinw(2000,.05);
     delay(50);
     sound.sinw(1000,.05);
-    delay(50);
-    
+    delay(50); 
     sound.stop();
     /*
     sound.start_recording([](const uint16_t* data, size_t size, void* state) {

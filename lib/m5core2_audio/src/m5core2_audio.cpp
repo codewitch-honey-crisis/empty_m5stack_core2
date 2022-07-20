@@ -14,19 +14,32 @@
 #define DMA_NUM_BUF     (2)
 #define I2S_NUM         (0)
 #define TWOPI           (6.28318531f)
+// covers whether the library is initialized (0), 
+// ready for playback (1) or ready for recording (2)
 static int m5core2_audio_init_mode = -1;
+// the thread for our audio
 static TaskHandle_t m5core2_audio_task;
+// the queue for our audio
 static QueueHandle_t m5core2_audio_queue;
+// the callback we use for recording (do not use yet)
 static m5core2_audio_record_callback m5core2_audio_record_fn;
+// the callback state we use for recording (do not use yet)
 static void* m5core2_audio_record_state;
+// the output buffer
 static uint16_t m5core2_audio_out_buf[DMA_BUF_LEN];
+// the input buffer (do not use yet)
 static uint16_t m5core2_audio_in_buf[DMA_BUF_LEN_INPUT];
+
+// holds our message data.
 struct m5core2_audio_queue_message {
     int cmd;
     uint32_t data[2];
 };
+// a global message we use to make sure it doesn't 
+// go out of scope.
 m5core2_audio_queue_message m5core2_audio_msg;
 
+// prepares to generate and play a waveform
 bool m5core2_audio_shape(unsigned shape,float frequency, float volume) {
     struct start_data {
         float frequency;
@@ -46,13 +59,14 @@ bool m5core2_audio_shape(unsigned shape,float frequency, float volume) {
     }
     return false;
 }
+// initializes the I2S bus for playback (1) or recording (2)
+// (do not use recording yet)
 bool m5core2_audio_i2s_initialize(int mode) {
     if(mode==m5core2_audio_init_mode) {
         return true;
     }
     
     if(m5core2_audio_init_mode!=0||mode==0) {
-        Serial.println("driver uninstalled");
         i2s_driver_uninstall((i2s_port_t)I2S_NUM);
     }
     i2s_config_t i2s_config;
@@ -77,7 +91,8 @@ bool m5core2_audio_i2s_initialize(int mode) {
                 .bck_io_num = 12,
                 .ws_io_num = 0,
                 .data_out_num = 2,
-                .data_in_num = I2S_PIN_NO_CHANGE};
+                .data_in_num = I2S_PIN_NO_CHANGE
+            };
             i2s_set_pin((i2s_port_t)I2S_NUM, &pins);
 
             break;
@@ -98,14 +113,16 @@ bool m5core2_audio_i2s_initialize(int mode) {
                 .bck_io_num = 12,
                 .ws_io_num = 0,
                 .data_out_num = I2S_PIN_NO_CHANGE,
-                .data_in_num = 34};
+                .data_in_num = 34
+            };
             i2s_set_pin((i2s_port_t)I2S_NUM, &pins);
             break;
     }
     m5core2_audio_init_mode=mode;
     return true;
 }
-void m5core2_audio_sin(m5core2_audio_queue_message& msg) {
+// generates a waveform
+void m5core2_audio_wavegen(m5core2_audio_queue_message& msg) {
     struct sdata {
         float frequency;
         float volume;
@@ -121,8 +138,8 @@ void m5core2_audio_sin(m5core2_audio_queue_message& msg) {
     const float pdc = TWOPI*s.frequency/SAMPLE_RATE;
     float pd = pdc;
     size_t sz = sizeof(m5core2_audio_queue_message);
-    
-    while(!xQueueReceive(m5core2_audio_queue,&msg,0)) {
+    // loop until a message is received
+    while(!xQueuePeek(m5core2_audio_queue,&msg,0)) {
         
         for (int i=0; i < DMA_BUF_LEN; i++) {
             // offset values by 1 and then scale to half since they can't be negative
@@ -159,16 +176,13 @@ void m5core2_audio_sin(m5core2_audio_queue_message& msg) {
             p2+=pd;
             // Scale to 16-bit integer range
             samp = f* 65535.0f * s.volume;
-            m5core2_audio_out_buf[i] = (uint16_t)samp ;//<< 16;
+            m5core2_audio_out_buf[i] = (uint16_t)samp ;
         }
         // time critical
         i2s_write((i2s_port_t)I2S_NUM, m5core2_audio_out_buf, sizeof(m5core2_audio_out_buf), &bytes_written, portMAX_DELAY);
 
-        // You could put a taskYIELD() here to ensure other tasks always have a chance to run.
         vTaskDelay(0);
     }
-
-    xQueueSend(m5core2_audio_queue,&m5core2_audio_msg,portMAX_DELAY);
 }
 void m5core2_audio_rec() {
     m5core2_audio_queue_message msg;
@@ -178,7 +192,6 @@ void m5core2_audio_rec() {
         // time critical
         i2s_read((i2s_port_t)I2S_NUM,m5core2_audio_in_buf,sizeof(m5core2_audio_in_buf),&read,portMAX_DELAY);
         m5core2_audio_record_fn(m5core2_audio_in_buf,read,m5core2_audio_record_state);
-        // You could put a taskYIELD() here to ensure other tasks always have a chance to run.
         vTaskDelay(0);
     }
 
@@ -202,7 +215,7 @@ m5core2_audio_task_fn_restart:
                 case 3:
                     m5core2_audio_rec();
                 default:
-                    m5core2_audio_sin(msg);
+                    m5core2_audio_wavegen(msg);
                     break;
                     
                     
