@@ -53,7 +53,7 @@ void m5core2_audio_sin(m5core2_audio_queue_message& msg) {
                     f = p>PI;
                     break;
                 case 4:
-                    // triangle wave
+                    // saw wave
                     f=(p/TWO_PI);
                     break;
             }
@@ -122,14 +122,13 @@ bool m5core2_audio::initialize() {
         memset(&i2s_config,0,sizeof(i2s_config_t));
         i2s_config.mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
         i2s_config.sample_rate = SAMPLE_RATE;
-        i2s_config.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT;
+        i2s_config.bits_per_sample = I2S_BITS_PER_SAMPLE_8BIT;
         i2s_config.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT;
         i2s_config.communication_format = I2S_COMM_FORMAT_STAND_MSB;
         i2s_config.dma_buf_count = DMA_NUM_BUF;
         i2s_config.dma_buf_len = DMA_BUF_LEN;
         i2s_config.use_apll = true;
         i2s_config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL2;
-    
         i2s_driver_install((i2s_port_t)I2S_NUM, &i2s_config, 0, NULL);
         i2s_pin_config_t pins = {
             .mck_io_num = 0, // Unused
@@ -202,7 +201,7 @@ bool m5core2_audio::sinw(float frequency,float volume = 1.0) {
     }
     return false;
 }*/
-bool m5core2_audio::triw(float frequency,float volume = 1.0) {
+bool m5core2_audio::saww(float frequency,float volume = 1.0) {
     if(volume==0.0) {
         return true;
     }

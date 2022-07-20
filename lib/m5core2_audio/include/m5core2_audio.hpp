@@ -6,8 +6,8 @@ public:
     bool initialize();
     // generate a sine based tone at the specified hz, and a volume multiplier between 0 and 1
     bool sinw(float frequency,float volume);
-    // generate a triangle based tone at the specified hz, and a volume multiplier between 0 and 1
-    bool triw(float frequency,float volume);
+    // generate a sawtooth based tone at the specified hz, and a volume multiplier between 0 and 1
+    bool saww(float frequency,float volume);
     
     // stops all sound from playing
     bool stop();
