@@ -162,6 +162,9 @@ void setup() {
     delay(50);
     sound.sinw(1000,.05);
     delay(50); 
+    sound.sinw(500,.05);
+    delay(50); 
+    
     sound.stop();
     /*
     sound.start_recording([](const uint16_t* data, size_t size, void* state) {
@@ -170,6 +173,9 @@ void setup() {
     delay(2000);
     sound.stop_recording();
     */
+
+   
+
 }
 void loop() {
     touch.update();
