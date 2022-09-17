@@ -1,9 +1,16 @@
 #include <m5core2_power.hpp>
 
+static uint8_t calc_voltage_data(uint16_t value, uint16_t maxv, uint16_t minv,
+                        uint16_t step) {
+  uint8_t data = 0;
+  if (value > maxv) value = maxv;
+  if (value > minv) data = (value - minv) / step;
+  return data;
+}
 m5core2_power::m5core2_power() {}
 
 void m5core2_power::initialize() {
-  Wire1.begin(22,23);
+  Wire1.begin(21,22);
   Wire1.setClock(400000);
 
   //m5core2_power 30H
@@ -18,13 +25,13 @@ void m5core2_power::initialize() {
   //m5core2_power RTC CHG
   Write1Byte(0x35, (Read8bit(0x35) & 0x1c) | 0xa2);
   
-  mcu_voltage(3350);
+  mcu_voltage(3.350);
   
-  lcd_voltage(2800);
+  lcd_voltage(2.800);
   
-  ldo_voltage(2, 3300);  //Periph power voltage preset (LCD_logic, SD card)
+  ldo_voltage(2, 3.300);  //Periph power voltage preset (LCD_logic, SD card)
   
-  ldo_voltage(3, 2000);  //Vibrator power voltage preset
+  ldo_voltage(3, 2.000);  //Vibrator power voltage preset
   
   ldo_enable(2, true);
   dcd3_enable(true);  // LCD backlight
@@ -49,6 +56,8 @@ void m5core2_power::initialize() {
   delay(100);
   // I2C_WriteByteDataAt(0X15,0XFE,0XFF);
   
+  // set peripherals power on
+  Write1Byte(0x10, Read8bit(0x10) & 0XFB);
 
   // axp: check v-bus status
   if (Read8bit(0x00) & 0x08) {
@@ -59,6 +68,7 @@ void m5core2_power::initialize() {
     // if not, enable M-Bus 5V output
     bus_external_power_enable(0);
   }
+  speaker_enable(true);
 }
 
 void m5core2_power::Write1Byte(uint8_t Addr, uint8_t Data) {
@@ -217,7 +227,7 @@ float m5core2_power::battery_level(void) {
   return (batPercentage <= 100) ? batPercentage : 100;
 }
 
-void m5core2_power::RestoreFromLightSleep(void) {
+void m5core2_power::restore_from_light_sleep(void) {
   // Turn LCD backlight on
   dcd3_enable(true);
 
@@ -261,7 +271,7 @@ void m5core2_power::light_sleep(uint64_t time_in_us) {
   }
   esp_light_sleep_start();
 
-  RestoreFromLightSleep();
+  restore_from_light_sleep();
 }
 
 uint8_t m5core2_power::warning_level(void) { return Read8bit(0x47) & 0x01; }
@@ -365,7 +375,8 @@ bool m5core2_power::vbus() { return (Read8bit(0x00) & 0x20) ? true : false; }
 
 void m5core2_power::ldo_voltage(uint8_t number, float voltage) {
   uint16_t value = voltage * 1000;
-  value = (value > 3300) ? 15 : (value / 100) - 18;
+  //value = (value > 3300) ? 15 : (value / 100) - 18;
+  value = calc_voltage_data(value,3300,1800,100)&0x0F;
   switch (number) {
     //uint8_t reg, data;
     case 2:
@@ -381,16 +392,19 @@ void m5core2_power::dc_voltage(uint8_t number, float voltage) {
   uint8_t addr;
   uint16_t value = voltage * 1000;
   if (number > 2) return;
-  value = (value < 700) ? 0 : (value - 700) / 25;
+  //value = (value < 700) ? 0 : (value - 700) / 25;
   switch (number) {
     case 0:
       addr = 0x26;
+      value = calc_voltage_data(value,3500,700,25) & 0x7f;
       break;
     case 1:
       addr = 0x25;
+      value = calc_voltage_data(value,2275,700,25) & 0x3f;
       break;
     case 2:
       addr = 0x27;
+      value = calc_voltage_data(value,3500,700,25) & 0x7f;
       break;
   }
   Write1Byte(addr, (Read8bit(addr) & 0X80) | (value & 0X7F));

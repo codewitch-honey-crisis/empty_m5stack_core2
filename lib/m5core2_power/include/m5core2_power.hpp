@@ -73,7 +73,7 @@ class m5core2_power {
   void adc_enable(bool state);
   // -- sleep
   void prepare_sleep(void);
-  void RestoreFromLightSleep(void);
+  void restore_from_light_sleep(void);
   void deep_sleep(uint64_t time_in_us = 0);
   void light_sleep(uint64_t time_in_us = 0);
   uint8_t warning_level_raw(void);

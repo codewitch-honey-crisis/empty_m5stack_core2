@@ -78,7 +78,6 @@ TwoWire& grove = i2c_container<0>::instance();
 // initialize M5 Stack Core2 peripherals/features
 void initialize_m5stack_core2() {
     Serial.begin(115200);
-    i2c_container<0>::instance().begin(32, 33);
     i2c_container<1>::instance().begin(21, 22);
     power.initialize();
     rtc.initialize();
@@ -98,6 +97,8 @@ void initialize_m5stack_core2() {
         Serial.println("Sound initialization failed");
         while(true);
     }
+    i2c_container<0>::instance().begin(32, 33);
+    
 #ifdef SET_CLOCK
     tm build_tm;
     rtc.build(&build_tm);
