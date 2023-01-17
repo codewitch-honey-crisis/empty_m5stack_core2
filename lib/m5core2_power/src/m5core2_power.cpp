@@ -55,10 +55,9 @@ void m5core2_power::initialize() {
   lcd_reset_enable(1);
   delay(100);
   // I2C_WriteByteDataAt(0X15,0XFE,0XFF);
-  
   // set peripherals power on
-  Write1Byte(0x10, Read8bit(0x10) & 0XFB);
-
+  set_peripheral_power(true);
+  
   // axp: check v-bus status
   if (Read8bit(0x00) & 0x08) {
     Write1Byte(0x30, Read8bit(0x30) | 0x80);
@@ -68,9 +67,16 @@ void m5core2_power::initialize() {
     // if not, enable M-Bus 5V output
     bus_external_power_enable(0);
   }
-  speaker_enable(true);
+  //speaker_enable(true);
 }
-
+void m5core2_power::set_peripheral_power(bool value) {
+  if (!value)
+    Write1Byte(0x10, Read8bit(0x10) & 0XFB);
+  else if (value)
+    Write1Byte(0x10, Read8bit(0x10) | 0X04);
+  // uint8_t data;
+  // Set EXTEN to enable 5v boost
+}
 void m5core2_power::Write1Byte(uint8_t Addr, uint8_t Data) {
   Wire1.beginTransmission(0x34);
   Wire1.write(Addr);

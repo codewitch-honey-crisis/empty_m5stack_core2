@@ -62,23 +62,22 @@ m5core2_power power;
 m5core2_audio sound;
 
 // the real time clock
-bm8563 rtc(i2c_container<1>::instance());
+bm8563 rtc(Wire1);
 
 // the touch panel
-ft6336<280,320,lcd_pin_touch_int> touch(i2c_container<1>::instance());
+ft6336<280,320,lcd_pin_touch_int> touch(Wire1);
 
 // the gyro
-mpu6886 gyro(i2c_container<1>::instance());
+mpu6886 gyro(Wire1);
 
 // declare an alias for the I2C port
 // in the Grove form factor on the 
 // side of the device
-TwoWire& grove = i2c_container<0>::instance();
+TwoWire& grove = Wire;
 
 // initialize M5 Stack Core2 peripherals/features
 void initialize_m5stack_core2() {
     Serial.begin(115200);
-    i2c_container<1>::instance().begin(21, 22);
     power.initialize();
     rtc.initialize();
     spi_container<spi_host>::instance().begin(spi_pin_clk,spi_pin_miso,spi_pin_mosi,-1);
@@ -93,11 +92,12 @@ void initialize_m5stack_core2() {
     gyro.initialize();
     touch.rotation(1);
     touch.interrupt_enabled(false);
+    power.speaker_enable(true);
     if(!sound.initialize()) {
         Serial.println("Sound initialization failed");
         while(true);
     }
-    i2c_container<0>::instance().begin(32, 33);
+    Wire.begin(32, 33);
     
 #ifdef SET_CLOCK
     tm build_tm;

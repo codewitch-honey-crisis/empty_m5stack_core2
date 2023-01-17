@@ -110,6 +110,7 @@ class m5core2_power {
   void power_led_enable(bool value);
   void speaker_enable(bool value);
   void charge_current(m5core2_charge_current value);
+  void set_peripheral_power(bool value);
 
  private:
   void Write1Byte(uint8_t Addr, uint8_t Data);
